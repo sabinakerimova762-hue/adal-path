@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADAL PATH: Хроники Университета</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #090d16;
+            --bg-card: rgba(18, 25, 41, 0.85);
+            --bg-card-hover: rgba(30, 42, 69, 0.95);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --accent: #f59e0b;
+            --accent-glow: rgba(245, 158, 11, 0.4);
+            --danger: #ef4444;
+            --success: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.15) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(245, 158, 11, 0.12) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 13, 22, 0.96);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .reg-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        .reg-card h2 {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            text-align: center;
+            background: linear-gradient(135deg, #fff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .reg-card p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), #2563eb);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1440px;
+            height: 94vh;
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            gap: 20px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            overflow-y: auto;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .avatar-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .profile-info h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .profile-info p {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .stat-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .stat-progress-bg {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .stat-progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .main-game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .top-navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px 24px;
+        }
+
+        .chapter-badge {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            border: 1px solid var(--primary-glow);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .story-display {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .dialog-character {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: 16px;
+        }
+
+        .char-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .char-content h4 {
+            font-size: 15px;
+            color: var(--accent);
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .char-content p {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #e5e7eb;
+        }
+
+        .scene-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #d1d5db;
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: auto;
+        }
+
+        .choice-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 22px;
+            color: var(--text-main);
+            font-size: 14px;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            line-height: 1.5;
+        }
+
+        .choice-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .text-input-case {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .case-textarea {
+            width: 100%;
+            height: 110px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            resize: none;
+        }
+
+        .case-textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .law-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 14px;
+            padding: 16px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #a7f3d0;
+        }
+
+        .law-box strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--success);
+            font-size: 13px;
+        }
+
+        .audit-game {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .doc-line {
+            padding: 14px;
+            margin: 8px 0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .doc-line:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .doc-line.selected-suspicious {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: var(--danger);
+        }
+
+        .timer-box {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .drag-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .drag-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .full-report-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .report-header-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+            border: 2px solid var(--accent);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .metric-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .report-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid var(--primary);
+            padding: 14px 18px;
+            margin: 8px 0;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                overflow: visible;
+            }
+            .sidebar {
+                order: 2;
+            }
+            .main-game-area {
+                order: 1;
+                min-height: 600px;
+            }
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .full-report-container, .full-report-container * {
+                visibility: visible;
+            }
+            .full-report-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                color: #000;
+                background: #fff !important;
+            }
+            .choice-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="reg-modal">
+    <div class="reg-card">
+        <h2>ADAL PATH: Хроники Университета</h2>
+        <p>Для прохождения симулятора и получения именного Сертификата заполните карточку студента.</p>
+        
+        <form id="reg-form" onsubmit="registerStudent(event)">
+            <div class="form-group">
+                <label>ФИО Студента *</label>
+                <input type="text" id="reg-name" class="form-control" placeholder="Например: Арман Сериков" required>
+            </div>
+
+            <div class="form-group">
+                <label>Учебное заведение (ВУЗ / Колледж Карагандинской области) *</label>
+                <input type="text" id="reg-institution" class="form-control" placeholder="Например: КарУ им. Букетова / Политехнический колледж" required>
+            </div>
+
+            <div class="form-group">
+                <label>Специальность / Факультет *</label>
+                <input type="text" id="reg-faculty" class="form-control" placeholder="Например: Юриспруденция / Информационные технологии" required>
+            </div>
+
+            <div class="form-group">
+                <label>Курс / Группа *</label>
+                <input type="text" id="reg-group" class="form-control" placeholder="Например: 2 курс, группа ПО-22" required>
+            </div>
+
+            <button type="submit" class="btn-submit">Войти в симулятор</button>
+        </form>
+    </div>
+</div>
+
+<div class="app-container">
+    
+    <div class="sidebar">
+        <div class="card">
+            <div class="profile-header">
+                <div class="avatar-box">🎓</div>
+                <div class="profile-info">
+                    <h3 id="player-name">Студент</h3>
+                    <p id="player-institution">Учебное заведение</p>
+                    <p id="player-faculty" style="color: var(--accent); font-weight: 600; margin-top:2px;">Специальность</p>
+                </div>
+            </div>
+
+            <div class="stat-group">
+                <div class="stat-bar-container">
+                    <div class="stat-label-row">
+                        <span>🧠 Академические знания</span>
+                        <span id="val-knowledge">50/100</span>
+                    </div>
+                    <div class="stat-progress-bg">
+                        <div id="bar-knowledge" class="stat-progress-fill" style="width: 50%; background: var(--primary);"></div>
+                    </div>
+                </div>
+
+                <div class="stat-bar-container">
+                    <div class="stat-label-row">
+                        <span>🤝 Adal-Рейтинг (Честность)</span>
+                        <span id="val-adal">50/100</span>
+                    </div>
+                    <div class="stat-progress-bg">
+                        <div id="bar-adal" class="stat-progress-fill" style="width: 50%; background: var(--success);"></div>
+                    </div>
+                </div>
+
+                <div class="stat-bar-container">
+                    <div class="stat-label-row">
+                        <span>⚖️ Коррупционный риск</span>
+                        <span id="val-risk">0%</span>
+                    </div>
+                    <div class="stat-progress-bg">
+                        <div id="bar-risk" class="stat-progress-fill" style="width: 0%; background: var(--danger);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="flex: 1;">
+            <h4 style="font-size: 12px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">📍 Локация</h4>
+            <div id="location-name" style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                Общежитие
+            </div>
+            <p id="location-desc" style="font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.5;">
+                Учебный семестр начинается. Вам предстоит проявить правовую грамотность в 10 различных ситуациях.
+            </p>
+        </div>
+    </div>
+
+    <div class="main-game-area">
+        <div class="top-navbar">
+            <span class="chapter-badge" id="chapter-title">Задание 1 из 10</span>
+            <span style="font-size: 13px; color: var(--text-muted);" id="date-display">Учебный семестр</span>
+        </div>
+
+        <div class="story-display" id="story-node">
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+            <h4 style="font-size: 14px; margin-bottom: 14px; color: var(--text-main); font-weight: 700;">⚖️ Нормативно-правовая база РК</h4>
+
+            <div id="law-content" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;">
+                <div class="law-box">
+                    <strong>Статья 367 УК РК (Дача взятки)</strong>
+                    Передача денег или имущества должностному лицу влечёт уголовную ответственность, крупные штрафы или лишение свободы.
+                </div>
+                <div class="law-box">
+                    <strong>Статья 366 УК РК (Получение взятки)</strong>
+                    Незаконное получение вознаграждения за действия или бездействие в пользу давателя.
+                </div>
+                <div class="law-box">
+                    <strong>Академическая честность</strong>
+                    Плагиат, подлог документов, покупка работ ведут к аннулированию результатов и отчислению из ВУЗа/Колледжа.
+                </div>
+            </div>
+
+            <div style="margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); text-align: center;">
+                <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5;">
+                    Call-центр Антикоррупционной службы: <b style="color: var(--accent);">1424</b><br>
+                    Официальный портал обращений: <b>eOtinish.kz</b>
+                </p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let studentData = { name: "", institution: "", faculty: "", group: "" };
+    let gameState = { knowledge: 50, adal: 50, risk: 0, decisions: [], foundViolations: 0, userPetitionText: "" };
+    let timerInterval = null;
+
+    function registerStudent(e) {
+        e.preventDefault();
+        studentData.name = document.getElementById('reg-name').value;
+        studentData.institution = document.getElementById('reg-institution').value;
+        studentData.faculty = document.getElementById('reg-faculty').value;
+        studentData.group = document.getElementById('reg-group').value;
+
+        document.getElementById('player-name').innerText = studentData.name;
+        document.getElementById('player-institution').innerText = studentData.institution;
+        document.getElementById('player-faculty').innerText = `${studentData.faculty} (${studentData.group})`;
+
+        document.getElementById('reg-modal').style.display = 'none';
+        renderStats();
+        loadScene('task_1');
+    }
+
+    const storyGraph = {
+        task_1: {
+            chapter: "Задание 1: Заселение в общежитие",
+            date: "Сентябрь",
+            location: "Общежитие №1",
+            locDesc: "Очередь на заселение. В коридоре душно, мест на всех не хватает.",
+            character: {
+                name: "Комендант общежития",
+                avatar: "👨‍💼",
+                text: "Свободных мест осталась пара штук. Можем оформить тебя в хорошую комнату вне очереди, если поможешь 'фонду развития' наличными без лишних бумаг."
+            },
+            sceneText: "Какое решение вы примете в данной ситуации?",
+            choices: [
+                { text: "Внести переданную сумму лично коменданту для гарантии заселения.", next: "task_1_fail" },
+                { text: "Отказаться и подать официальное заявление через Студенческий совет и eOtinish.", next: "task_1_success" }
+            ]
+        },
+        task_1_fail: {
+            effect: { knowledge: 0, adal: -15, risk: +20 },
+            decisionLog: "Задание 1: Внесение неофициального платежа коменданту.",
+            sceneText: "Вы заселились, но с вас продолжают требовать платежи. Риск вырос.",
+            choices: [{ text: "Перейти к Заданию 2 ➔", next: "task_2" }]
+        },
+        task_1_success: {
+            effect: { knowledge: +10, adal: +15, risk: 0 },
+            decisionLog: "Задание 1: Официальное подача заявления через комиссию.",
+            sceneText: "Комиссия распределила место прозрачно по вашему баллу.",
+            choices: [{ text: "Перейти к Заданию 2 ➔", next: "task_2" }]
+        },
+
+        task_2: {
+            chapter: "Задание 2: Академический плагиат и эссе",
+            date: "Октябрь",
+            location: "Библиотека",
+            locDesc: "Подготовка эссе по юриспруденции / социологии.",
+            character: {
+                name: "Староста группы",
+                avatar: "👩‍🎓",
+                text: "Зачем писать эссе всю ночь? Я нашла сайт, где нейросеть за 500 тенге генерирует уникальный текст, который обходит систему Антиплагиат."
+            },
+            sceneText: "Как вы поступите при написании работы?",
+            choices: [
+                { text: "Сгенерировать работу через сервис и сдать её без изменений.", next: "task_2_fail" },
+                { text: "Написать исследование самостоятельно на основе первоисточников.", next: "task_2_success" }
+            ]
+        },
+        task_2_fail: {
+            effect: { knowledge: -10, adal: -15, risk: +15 },
+            decisionLog: "Задание 2: Использование сгенерированного текста для эссе.",
+            sceneText: "Преподаватель заметил поверхностные формулировки и отправил работу на пересдачу.",
+            choices: [{ text: "Перейти к Заданию 3 ➔", next: "task_3" }]
+        },
+        task_2_success: {
+            effect: { knowledge: +15, adal: +10, risk: 0 },
+            decisionLog: "Задание 2: Самостоятельное написание эссе.",
+            sceneText: "Ваша работа получила высокий балл за оригинальность мысли.",
+            choices: [{ text: "Перейти к Заданию 3 ➔", next: "task_3" }]
+        },
+
+        task_3: {
+            chapter: "Задание 3: Экспресс-спринт по УК РК (Таймер)",
+            date: "Ноябрь",
+            location: "Тестовый центр",
+            locDesc: "Правовая викторина на скорость принятия решений.",
+            character: { name: "Инспектор Anti-Kor", avatar: "👮‍♂️", text: "Вам дается 15 секунд на экстренную оценку правовой ситуации!" },
+            sceneText: "Гражданин Н. передал преподавателю 50 000 тенге за выставление оценки без сдачи экзамена. Под какую статью УК РК попадает его действие?",
+            isTimerTask: true,
+            choices: [
+                { text: "Статья 367 УК РК (Дача взятки)", next: "task_3_success" },
+                { text: "Это административное нарушение (дисциплинарный проступок)", next: "task_3_fail" },
+                { text: "Гражданин освобождается от любой ответственности", next: "task_3_fail" }
+            ]
+        },
+        task_3_fail: {
+            effect: { knowledge: -10, adal: -5, risk: +10 },
+            decisionLog: "Задание 3: Ошибка в квалификации правонарушения (ст. 367 УК РК).",
+            sceneText: "Неверно. Дача взятки должностному лицу — это прямое уголовное преступление (ст. 367 УК РК).",
+            choices: [{ text: "Перейти к Заданию 4 ➔", next: "task_4" }]
+        },
+        task_3_success: {
+            effect: { knowledge: +15, adal: +10, risk: 0 },
+            decisionLog: "Задание 3: Точное определение статьи 367 УК РК в спринте.",
+            sceneText: "Правильно! Дача взятки должностному лицу является уголовным преступлением по ст. 367 УК РК.",
+            choices: [{ text: "Перейти к Заданию 4 ➔", next: "task_4" }]
+        },
+
+        task_4: {
+            chapter: "Задание 4: Составление обращения в eOtinish",
+            date: "Декабрь",
+            location: "Онлайн-кабинет",
+            locDesc: "Вы столкнулись с фактом отсутствия прейскуранта и вымогательства в ВУЗе.",
+            character: { name: "Модератор eOtinish", avatar: "💻", text: "Сформулируйте текст официального обращения в государственные органы." },
+            sceneText: "Напишите суть вашей жалобы или сигнала (не менее 10 символов):",
+            isTextInputCase: true,
+            choices: []
+        },
+
+        task_5: {
+            chapter: "Задание 5: Аудит договора государственных закупок",
+            date: "Январь",
+            location: "Аудиторский отдел",
+            locDesc: "Проверка сметы на ремонт спортзала университета.",
+            character: { name: "Аналитик", avatar: "🧐", text: "Найдите и выделите завышенные финансовые пункты договора." },
+            sceneText: "Кликните по подозрительным строкам ниже (Найдите нарушения):",
+            isAuditGame: true,
+            choices: []
+        },
+
+        task_6: {
+            chapter: "Задание 6: Дилемма осведомителя на экзамене",
+            date: "Февраль",
+            location: "Экзаменационный зал",
+            locDesc: "Идёт итоговый экзамен. Вы видите шпаргалки и микронаушники.",
+            character: {
+                name: "Сосед по парте",
+                avatar: "🧑‍🎓",
+                text: "Тихо, не мешай! У нас тут вся группа с микронаушниками сидит, ответы продиктуют за пару минут."
+            },
+            sceneText: "Как вы поступите в условиях массового списания?",
+            choices: [
+                { text: "Промолчать и воспользоваться моментом для списания сложных вопросов.", next: "task_6_fail" },
+                { text: "Сдать работу самостоятельно и уведомить комиссию о нарушении академической честности.", next: "task_6_success" }
+            ]
+        },
+        task_6_fail: {
+            effect: { knowledge: -10, adal: -20, risk: +20 },
+            decisionLog: "Задание 6: Участие в массовом списании на экзамене.",
+            sceneText: "Результаты всей аудитории были аннулированы после проверки камер наблюдения.",
+            choices: [{ text: "Перейти к Заданию 7 ➔", next: "task_7" }]
+        },
+        task_6_success: {
+            effect: { knowledge: +15, adal: +20, risk: 0 },
+            decisionLog: "Задание 6: Принципиальный отказ от списания и защита стандартов честности.",
+            sceneText: "Вы сдали экзамен честно и поддержали академические стандарты ВУЗа.",
+            choices: [{ text: "Перейти к Заданию 7 ➔", next: "task_7" }]
+        },
+
+        task_7: {
+            chapter: "Задание 7: Производственная практика и фиктивные печати",
+            date: "Март",
+            location: "Предприятие / Организация",
+            character: {
+                name: "Руководитель практики",
+                avatar: "🏢",
+                text: "Можешь на практику не ходить. Просто принеси готовый отчет из интернета, я поставлю печать и оценку 'отлично'."
+            },
+            sceneText: "Какое решение вы примете относительно прохождения практики?",
+            choices: [
+                { text: "Согласиться на предложение, чтобы освободить личное время.", next: "task_7_fail" },
+                { text: "Настоять на реальном прохождении практики и выполнении рабочих задач.", next: "task_7_success" }
+            ]
+        },
+        task_7_fail: {
+            effect: { knowledge: -15, adal: -15, risk: +15 },
+            decisionLog: "Задание 7: Согласие на фиктивную печать за практику.",
+            sceneText: "Вы не получили навыков, а при проверке отчётов отделом кадров возникли вопросы.",
+            choices: [{ text: "Перейти к Заданию 8 ➔", next: "task_8" }]
+        },
+        task_7_success: {
+            effect: { knowledge: +20, adal: +15, risk: 0 },
+            decisionLog: "Задание 7: Полноценное прохождение практики на предприятии.",
+            sceneText: "Вы приобрели реальный опыт и получили предложение о трудоустройстве.",
+            choices: [{ text: "Перейти к Заданию 8 ➔", next: "task_8" }]
+        },
+
+        task_8: {
+            chapter: "Задание 8: Классификация действий и стандартов",
+            date: "Апрель",
+            location: "Кафедра права",
+            character: { name: "Преподаватель", avatar: "👩‍🏫", text: "Определите, какое из следующих действий относится к антикоррупционной культуре." },
+            sceneText: "Выберите действие, полностью соответствующее стандартам 'Adal Urpaq':",
+            choices: [
+                { text: "Подарки преподавателям дорогой техники от группы в честь успешной защиты.", next: "task_8_fail" },
+                { text: "Публикация открытых отчетов о расходовании бюджета Студенческого совета.", next: "task_8_success" },
+                { text: "Передача флешки с ответами перед тестированием.", next: "task_8_fail" }
+            ]
+        },
+        task_8_fail: {
+            effect: { knowledge: -5, adal: -10, risk: +10 },
+            decisionLog: "Задание 8: Ошибка в классификации антикоррупционных стандартов.",
+            sceneText: "Дорогие подарки преподавателям при исполнении обязанностей приравниваются к скрытым взяткам.",
+            choices: [{ text: "Перейти к Заданию 9 ➔", next: "task_9" }]
+        },
+        task_8_success: {
+            effect: { knowledge: +10, adal: +15, risk: 0 },
+            decisionLog: "Задание 8: Точное определение принципа финансовой прозрачности.",
+            sceneText: "Верно! Прозрачность бюджетов — ключевой элемент антикоррупционной культуры.",
+            choices: [{ text: "Перейти к Заданию 9 ➔", next: "task_9" }]
+        },
+
+        task_9: {
+            chapter: "Задание 9: Заседание комиссии по грантам",
+            date: "Май",
+            location: "Зал ректората",
+            character: {
+                name: "Член комиссии",
+                avatar: "🏛️",
+                text: "Нам поступила просьба 'протянуть' одного студента с низкими баллами на повышенную стипендию по знакомству."
+            },
+            sceneText: "Как член Студенческого совета в комиссии, какая ваша позиция?",
+            choices: [
+                { text: "Проголосовать 'за', чтобы не портить отношения с руководством.", next: "task_9_fail" },
+                { text: "Заблокировать решение и потребовать распределения строго по рейтингу успеваемости.", next: "task_9_success" }
+            ]
+        },
+        task_9_fail: {
+            effect: { knowledge: 0, adal: -20, risk: +25 },
+            decisionLog: "Задание 9: Поддержка кумовства при распределении стипендий.",
+            sceneText: "Студенты подали апелляцию. Проведена проверка, результаты заседания отменены.",
+            choices: [{ text: "Перейти к Заданию 10 ➔", next: "task_10" }]
+        },
+        task_9_success: {
+            effect: { knowledge: +10, adal: +25, risk: 0 },
+            decisionLog: "Задание 9: Защита принципа меритократии и честного распределения грантов.",
+            sceneText: "Стипендии получили действительно заслуженные и трудолюбивые студенты.",
+            choices: [{ text: "Перейти к Заданию 10 ➔", next: "task_10" }]
+        },
+
+        task_10: {
+            chapter: "Задание 10: Защита дипломного проекта",
+            date: "Июнь",
+            location: "Главная сцена ВУЗа",
+            character: { name: "Председатель ГАК", avatar: "👨‍⚖️", text: "Представьте ваш итоговый квалификационный проект." },
+            sceneText: "Финал вашей учебы. Каким образом подготовлена работа?",
+            choices: [
+                { text: "Заказать написание диплома сторонним специалистам в интернете.", next: "task_10_fail" },
+                { text: "Защитить собственный исследовательский проект, написанный от начала до конца.", next: "task_10_success" }
+            ]
+        },
+        task_10_fail: {
+            effect: { knowledge: 0, adal: -30, risk: +35 },
+            decisionLog: "Задание 10: Покупка и представление чужого дипломного проекта.",
+            sceneText: "Проверка выявила подлог. Диплом аннулирован.",
+            isFinal: true
+        },
+        task_10_success: {
+            effect: { knowledge: +20, adal: +30, risk: 0 },
+            decisionLog: "Задание 10: Успешная самостоятельная защита диплома.",
+            sceneText: "Блестящая защита! Вы доказали высокую профессиональную квалификацию!",
+            isFinal: true
+        }
+    };
+
+    function renderStats() {
+        document.getElementById('val-knowledge').innerText = gameState.knowledge + "/100";
+        document.getElementById('bar-knowledge').style.width = gameState.knowledge + "%";
+
+        document.getElementById('val-adal').innerText = gameState.adal + "/100";
+        document.getElementById('bar-adal').style.width = gameState.adal + "%";
+
+        document.getElementById('val-risk').innerText = gameState.risk + "%";
+        document.getElementById('bar-risk').style.width = gameState.risk + "%";
+    }
+
+    function loadScene(nodeKey) {
+        if (timerInterval) clearInterval(timerInterval);
+
+        const node = storyGraph[nodeKey];
+        if (!node) return;
+
+        if (node.effect) {
+            gameState.knowledge = Math.min(100, Math.max(0, gameState.knowledge + node.effect.knowledge));
+            gameState.adal = Math.min(100, Math.max(0, gameState.adal + node.effect.adal));
+            gameState.risk = Math.min(100, Math.max(0, gameState.risk + node.effect.risk));
+            renderStats();
+        }
+
+        if (node.decisionLog) {
+            gameState.decisions.push({
+                text: node.decisionLog,
+                riskImpact: node.effect ? node.effect.risk : 0
+            });
+        }
+
+        if (node.chapter) document.getElementById('chapter-title').innerText = node.chapter;
+        if (node.date) document.getElementById('date-display').innerText = node.date;
+        if (node.location) document.getElementById('location-name').innerText = node.location;
+        if (node.locDesc) document.getElementById('location-desc').innerText = node.locDesc;
+
+        const storyContainer = document.getElementById('story-node');
+        storyContainer.innerHTML = '';
+
+        if (node.character) {
+            const charHtml = `
+                <div class="dialog-character">
+                    <div class="char-avatar">${node.character.avatar}</div>
+                    <div class="char-content">
+                        <h4>${node.character.name}</h4>
+                        <p>"${node.character.text}"</p>
+                    </div>
+                </div>
+            `;
+            storyContainer.insertAdjacentHTML('beforeend', charHtml);
+        }
+
+        if (node.sceneText) {
+            const textHtml = `<div class="scene-text">${node.sceneText}</div>`;
+            storyContainer.insertAdjacentHTML('beforeend', textHtml);
+        }
+
+        if (node.isTimerTask) {
+            renderTimerTask(storyContainer, node);
+            return;
+        }
+
+        if (node.isTextInputCase) {
+            renderTextInputCase(storyContainer);
+            return;
+        }
+
+        if (node.isAuditGame) {
+            renderAuditGame(storyContainer);
+            return;
+        }
+
+        if (node.isFinal) {
+            renderFullFinalReport(storyContainer);
+            return;
+        }
+
+        if (node.choices) {
+            const choicesContainer = document.createElement('div');
+            choicesContainer.className = 'choices-container';
+
+            node.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `<span>${choice.text}</span> <span>➔</span>`;
+                btn.onclick = () => loadScene(choice.next);
+                choicesContainer.appendChild(btn);
+            });
+
+            storyContainer.appendChild(choicesContainer);
+        }
+    }
+
+    function renderTimerTask(container, node) {
+        let timeLeft = 15;
+        const timerBox = document.createElement('div');
+        timerBox.className = 'timer-box';
+        timerBox.id = 'timer-display';
+        timerBox.innerText = `⏱️ Осталось времени: ${timeLeft} сек.`;
+        container.appendChild(timerBox);
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const el = document.getElementById('timer-display');
+            if (el) el.innerText = `⏱️ Осталось времени: ${timeLeft} сек.`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert("Время вышло! Решение не принято вовремя.");
+                loadScene('task_3_fail');
+            }
+        }, 1000);
+
+        const choicesContainer = document.createElement('div');
+        choicesContainer.className = 'choices-container';
+
+        node.choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.innerHTML = `<span>${choice.text}</span> <span>➔</span>`;
+            btn.onclick = () => {
+                clearInterval(timerInterval);
+                loadScene(choice.next);
+            };
+            choicesContainer.appendChild(btn);
+        });
+
+        container.appendChild(choicesContainer);
+    }
+
+    function renderTextInputCase(container) {
+        const box = document.createElement('div');
+        box.className = 'text-input-case';
+        box.innerHTML = `
+            <textarea class="case-textarea" id="petition-text" placeholder="Введите текст обращения (Например: В ВУЗе выявлен факт вымогательства за проставление оценок без сдачи...)"></textarea>
+            <button class="choice-btn" style="justify-content: center; background: var(--primary);" onclick="submitPetition()">Отправить сигнальное обращение ➔</button>
+        `;
+        container.appendChild(box);
+    }
+
+    function submitPetition() {
+        const val = document.getElementById('petition-text').value.trim();
+        if (val.length < 10) {
+            alert("Пожалуйста, напишите более подробный текст обращения (не менее 10 символов).");
+            return;
+        }
+        gameState.userPetitionText = val;
+        gameState.adal += 15;
+        gameState.knowledge += 10;
+        gameState.decisions.push({
+            text: "Задание 4: Составление официального обращения в eOtinish / 1424.",
+            riskImpact: 0
+        });
+        alert("Обращение успешно зафиксировано!");
+        renderStats();
+        loadScene('task_5');
+    }
+
+    function renderAuditGame(container) {
+        const auditBox = document.createElement('div');
+        auditBox.className = 'audit-game';
+        auditBox.innerHTML = `
+            <div style="font-size: 13px; color: var(--accent); margin-bottom: 10px; font-weight:700;">📑 Договор №104 'Ремонт спортивного зала'</div>
+            <div class="doc-line" onclick="toggleAuditLine(this, false)">1. Покраска стен и замена покрытия — 450 000 ₸</div>
+            <div class="doc-line" onclick="toggleAuditLine(this, true)">2. Закупка 4 волейбольных сеток — 1 800 000 ₸</div>
+            <div class="doc-line" onclick="toggleAuditLine(this, false)">3. Установка светильников — 250 000 ₸</div>
+            <div class="doc-line" onclick="toggleAuditLine(this, true)">4. Консультация по дизайну (без акта) — 2 200 000 ₸</div>
+            <button class="choice-btn" style="margin-top: 15px; width: 100%; justify-content: center; background: var(--primary);" onclick="finishAudit()">Завершить аудит договора ➔</button>
+        `;
+        container.appendChild(auditBox);
+    }
+
+    function toggleAuditLine(element, isViolation) {
+        element.classList.toggle('selected-suspicious');
+        if (element.classList.contains('selected-suspicious')) {
+            if (isViolation) gameState.foundViolations++;
+        } else {
+            if (isViolation) gameState.foundViolations--;
+        }
+    }
+
+    function finishAudit() {
+        if (gameState.foundViolations >= 2) {
+            gameState.adal += 20;
+            gameState.knowledge += 15;
+            gameState.decisions.push({
+                text: "Задание 5: Успешный общественный аудит договора сметы.",
+                riskImpact: 0
+            });
+            alert("Все завышенные пункты договора успешно выявлены!");
+        } else {
+            gameState.decisions.push({
+                text: "Задание 5: Частичное выявление нарушений при аудите договора.",
+                riskImpact: 5
+            });
+            alert("Аудит завершен. Опыт проверки занесен в протокол.");
+        }
+        renderStats();
+        loadScene('task_6');
+    }
+
+    function renderFullFinalReport(container) {
+        let certTitle = "";
+        let certColor = "";
+
+        if (gameState.risk >= 35) {
+            certTitle = "ВЫСОКИЙ КОРРУПЦИОННЫЙ РИСК";
+            certColor = "var(--danger)";
+        } else if (gameState.adal >= 70) {
+            certTitle = "СЕРТИФИКАТ ADAL URPAQ — ОБРАЗЦОВЫЙ СТУДЕНТ";
+            certColor = "var(--success)";
+        } else {
+            certTitle = "СРЕДНИЙ УРОВЕНЬ АКАДЕМИЧЕСКОЙ ЧЕСТНОСТИ";
+            certColor = "var(--accent)";
+        }
+
+        let reportHtml = `
+            <div class="full-report-container">
+                <div class="report-header-card">
+                    <div style="font-size: 20px; font-weight: 800; color: ${certColor}; margin-bottom: 6px;">${certTitle}</div>
+                    <p style="font-size: 15px; color: var(--text-main); font-weight:700;">${studentData.name}</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top:2px;">${studentData.institution} • ${studentData.faculty} (${studentData.group})</p>
+                </div>
+
+                <div class="report-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Академический балл</div>
+                        <div class="metric-value" style="color: var(--primary);">${gameState.knowledge} / 100</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Adal-Рейтинг Честности</div>
+                        <div class="metric-value" style="color: var(--success);">${gameState.adal} / 100</div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+                    <h5 style="font-size: 14px; margin-bottom: 12px; color: var(--text-main);">📋 История всех 10 принятых решений:</h5>
+        `;
+
+        gameState.decisions.forEach(item => {
+            reportHtml += `
+                <div class="report-item" style="border-left-color: ${item.riskImpact > 0 ? 'var(--danger)' : 'var(--success)'}">
+                    ${item.text}
+                </div>
+            `;
+        });
+
+        if (gameState.userPetitionText) {
+            reportHtml += `
+                <div class="report-item" style="border-left-color: var(--primary)">
+                    <b>Составленный текст обращения в eOtinish:</b> "${gameState.userPetitionText}"
+                </div>
+            `;
+        }
+
+        reportHtml += `
+                </div>
+
+                <div style="display: flex; gap: 12px;">
+                    <button class="choice-btn" style="flex:1; justify-content: center; background: var(--primary); font-weight:700;" onclick="window.print()">🖨️ Распечатать Сертификат</button>
+                    <button class="choice-btn" style="flex:1; justify-content: center; background: rgba(255,255,255,0.1); font-weight:700;" onclick="location.reload()">🔄 Начать заново</button>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = reportHtml;
+    }
+</script>
+
+</body>
+</html>
